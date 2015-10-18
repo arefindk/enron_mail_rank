@@ -66,6 +66,14 @@ for result in results:
 
 ## Transpose the list
 transposeRankList = map(list, zip(*rankList))
+## Getting the number of rank chnages each week
+numElementsinTransposeRankListNoPadding = list()
+for i in range(len(transposeRankList)):
+	specificRank = transposeRankList[i]
+	print "specificRank ", len(specificRank)
+	removedPadding = filter(lambda a: a != "padding", specificRank)
+	print "removedPadding ", len(removedPadding)
+	numElementsinTransposeRankListNoPadding.append(len(removedPadding))
 
 rankChangeDistribution = list()
 
@@ -74,11 +82,12 @@ for i in range(len(transposeRankList)):
 	#print "setOfEmails ", setOfEmails
 	#print "len(setOfEmails) ", len(setOfEmails)
 	setOfEmails.discard("padding")
+	print len(setOfEmails)
 	#print "len(setOfEmails) ",len(setOfEmails)
-	rankChangeDistribution.append(len(setOfEmails)-1)
+	rankChangeDistribution.append(len(setOfEmails)/float(numElementsinTransposeRankListNoPadding[i]))
 
 rankChangeDistribution = np.array(rankChangeDistribution)
-rankChangeDistribution = rankChangeDistribution / float(len(rankList)) # I am dividing the number changes for each rank by the total number of time periods here.
+# rankChangeDistribution = rankChangeDistribution / float(len(rankList)) # I am dividing the number changes for each rank by the total number of time periods here.
 
 plt.plot(range(len(rankChangeDistribution)), rankChangeDistribution, 'r--')
 plt.xscale('log')
