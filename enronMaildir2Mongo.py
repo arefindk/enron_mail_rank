@@ -52,7 +52,7 @@ if __name__ == "__main__":
         if not os.path.isdir(MAIL_DIR_PATH):
             raise Exception("Invalid or not found path for Enron Input: %s" % MAIL_DIR_PATH)
 
-    PREFIX_TRIM_AMOUNT = len(MAIL_DIR_PATH)
+    PREFIX_TRIM_AMOUNT = len(MAIL_DIR_PATH) + 0 
     client = MongoClient('localhost',27017)
     db = client.enron_mail
     print "database initialized {0}".format(datetime.datetime.now())
