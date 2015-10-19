@@ -15,7 +15,7 @@ highDate = dt.datetime(2004,1,1)
 doc = messages.find_one()
 pp.pprint(doc)
 
-pipeline = [{"$match":{"headers.Date":{"$gt":lowDate,"$lt":highDate}}},{"$unwind":"$headers.To"},\
+pipelineTo = [{"$match":{"headers.Date":{"$gt":lowDate,"$lt":highDate}}},{"$unwind":"$headers.To"},\
 			{"$group":{"_id":{"to":"$headers.To","year":{"$year":"$headers.Date"},"week":{"$week":"$headers.Date"}},"cnt":{"$sum":1}}},\
 			{"$sort":{"_id.to":1}},\
 			{"$sort":{"cnt":-1}},\
@@ -23,10 +23,15 @@ pipeline = [{"$match":{"headers.Date":{"$gt":lowDate,"$lt":highDate}}},{"$unwind
 			{"$sort":{"_id.year":1}}]
 			#{"$limit":500000}]
 
-doc = messages.find_one()
-pp.pprint(doc)
+pipelineFrom = [{"$match":{"headers.Date":{"$gt":lowDate,"$lt":highDate}}},\
+			{"$group":{"_id":{"from":"$headers.From","year":{"$year":"$headers.Date"},"week":{"$week":"$headers.Date"}},"cnt":{"$sum":1}}},\
+			{"$sort":{"_id.from":1}},\
+			{"$sort":{"cnt":-1}},\
+			{"$sort":{"_id.week":1}},\
+			{"$sort":{"_id.year":1}}]
+			#{"$limit":500000}]
 
-results = messages.aggregate(pipeline, allowDiskUse=True)
+results = messages.aggregate(currentPipeline, allowDiskUse=True)
 
 runningWeek = 0
 lastWeek = 0
@@ -34,6 +39,9 @@ maxNumberOfRanks = 0
 timeDictionary = dict()
 currentRankList = list()
 rankList = list()
+
+currentPipeline = pipelineFrom
+currentPipelineKey = "from"
 
 for result in results:
 	## Create a 2d list, row contains recipient mail id in ascending order
@@ -58,9 +66,9 @@ for result in results:
 		timeDictionary[runningWeek-1] = (result["_id"]["year"],result["_id"]["week"])## If sometime I need to retrieve the exact year and week for any index of the 2d array
 		#print "timeDictionary ", timeDictionary
 		currentRankList = list()
-		currentRankList.append(result["_id"]["to"])
+		currentRankList.append(result["_id"][currentPipelineKey])
 	else:
-		currentRankList.append(result["_id"]["to"])
+		currentRankList.append(result["_id"][currentPipelineKey])
 	#pp.pprint(result)
 	#print "currentRankList ", len(currentRankList)
 
@@ -91,4 +99,6 @@ rankChangeDistribution = np.array(rankChangeDistribution)
 
 plt.plot(range(len(rankChangeDistribution)), rankChangeDistribution, 'r--')
 plt.xscale('log')
+plt.savefig("enron_rank_"+currentPipelineKey+".pdf")
 plt.show()
+
